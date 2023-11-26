@@ -118,6 +118,9 @@ public class StandardHuffman {
 
             try (FileOutputStream compressedFile = new FileOutputStream("compressed.bin")) {
                 compressedFile.write(compressedBytes);
+                for (Map.Entry<Character, String> code : codes.entrySet()) {
+                    compressedFile.write(("\n" + code.getKey() + " " + code.getValue()).getBytes());
+                }
                 textArea.setText("File is compressed successfully in compressed.bin");
             } catch (IOException e) {
                 System.out.println("Something went wrong.");
