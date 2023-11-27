@@ -57,7 +57,7 @@ public class StandardHuffman {
         int result = fileChooser.showOpenDialog(frame);
         // Check if the user selected a file (clicked "Open" and did not close the window)
         if (result == JFileChooser.APPROVE_OPTION) {
-            File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be compressed
+            File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be decompressed
             decompress (selectedFile);
         }
     }
@@ -73,8 +73,48 @@ public class StandardHuffman {
             compress(selectedFile);
         }
     }
-
-
+    private void decompress(File file){
+        try  {
+            Scanner scanner = new Scanner(file);
+            StringBuilder compressedBytes = new StringBuilder();
+            compressedBytes.append(scanner.nextLine());
+            String compressedBytesString=compressedBytes.toString();
+            StringBuilder binaryStringBuilder= new StringBuilder();
+            String huffmanCodes;
+            for (int i=0;i<compressedBytesString.length();i++){
+                binaryStringBuilder.append(Integer.toBinaryString((int)compressedBytesString.charAt(i)));
+            }
+            huffmanCodes=binaryStringBuilder.toString();
+            Map <String,String> huffmanTable=new HashMap<>();
+            while (scanner.hasNext()){
+                huffmanTable.put(scanner.next(),scanner.next());
+            }
+            scanner.close();
+            String searchString="";
+            String originalData="";
+            for(int i=0;i<huffmanCodes.length();i++){
+                searchString+=huffmanCodes.charAt(i);
+                for(Map.Entry<String,String> entry:huffmanTable.entrySet()){
+                    if (searchString.equals(entry.getValue())){
+                        originalData+=entry.getKey();
+                        searchString="";
+                    }
+                }
+            }
+            try  {
+                File decompressedFile=new File("decompressed.txt");
+                decompressedFile.createNewFile();
+                FileWriter fileWriter =new FileWriter("decompressed.txt");
+                fileWriter.write(originalData);
+                fileWriter.close();
+                textArea.setText("File is decompressed successfully in decompressed.txt");
+            } catch (Exception e) {
+                System.out.println("Something went wrong.");
+            }
+        } catch (FileNotFoundException e) {
+            System.out.println("Please make sure the file exists.");
+        }
+    }
     private void compress(File file) {
         try {
             // Get the original text from the file
