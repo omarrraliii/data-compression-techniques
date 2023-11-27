@@ -30,6 +30,7 @@ public class StandardHuffman {
         JButton decompressButton = new JButton("Decompress");
         decompressButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                decompressAction();
             }
         });
 
@@ -50,6 +51,16 @@ public class StandardHuffman {
             }
         });
     }
+    private void decompressAction(){
+        // Create a file chooser dialog to allow the user to select a file and store the user's selection
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(frame);
+        // Check if the user selected a file (clicked "Open" and did not close the window)
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be compressed
+            decompress (selectedFile);
+        }
+    }
 
     private void compressAction() {
         // Create a file chooser dialog to allow the user to select a file and store the user's selection
@@ -62,6 +73,7 @@ public class StandardHuffman {
             compress(selectedFile);
         }
     }
+
 
     private void compress(File file) {
         try {
