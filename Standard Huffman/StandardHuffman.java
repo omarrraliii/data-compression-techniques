@@ -136,30 +136,27 @@ public class StandardHuffman {
             // Calculate character probabilities of the original text
             Map<Character, Integer> probabilities = new HashMap<>();
             for (char c : originalData.toString().toCharArray()) {
-                probabilities.put(c, probabilities.getOrDefault(c, 0) + 1); // Ensure that the default frequency is 0 if a character is encountered for the first time
+                probabilities.put(c, probabilities.getOrDefault(c, 0) + 1);
             }
 
-            // Create a priority queue (to handle the ordering of characters based on their probabilities)
+            // Create a priority queue
             PriorityQueue<Node> queue = new PriorityQueue<>(Comparator.comparingInt(node -> node.frequency));
             for (Map.Entry<Character, Integer> entry : probabilities.entrySet()) {
-                Node newNode = new Node(entry.getKey(), entry.getValue()); // Create a new Node for the current character and its probability
+                Node newNode = new Node(entry.getKey(), entry.getValue());
                 queue.add(newNode);
             }
 
-            while (queue.size() > 1) { // Continue until there is only one node with one probability
-                // The two nodes with the lowest probabilities are removed
+            while (queue.size() > 1) {
                 Node left = queue.poll();
                 Node right = queue.poll();
-
-                // Add a new combined node with a probability equal to the sum of the probabilities of the two nodes removed
                 Node combined = new Node('\0', left.frequency + right.frequency);
-                combined.left = left; // The left and right children of the new node are set to the nodes whose probabilities were added
+                combined.left = left;
                 combined.right = right;
                 queue.add(combined);
             }
 
-            Map<Character, String> codes = new HashMap<>(); // To store the codes for each character
-            buildCodes(queue.peek(), "", codes); // Pass the root to assign the other added characters their own code
+            Map<Character, String> codes = new HashMap<>();
+            buildCodes(queue.peek(), "", codes);
 
             // Convert each character of the original text to its code
             StringBuilder compressedString = new StringBuilder();
@@ -167,16 +164,20 @@ public class StandardHuffman {
                 compressedString.append(codes.get(c));
             }
 
+            int padding = (8 - compressedString.length() % 8) % 8;
+            compressedString.append("%" + "0".repeat(padding));
+            System.out.println("Compressed Data (Huffman Codes): " + compressedString.toString());
+
             // Convert the compressed string to bytes
             byte[] compressedBytes = new byte[(compressedString.length() + 7) / 8];
             for (int i = 0; i < compressedString.length(); i++) {
-                if (compressedString.toString().charAt(i) == '1') {
-                    // Set the corresponding bit in the byte
+                if (compressedString.charAt(i) == '1') {
                     compressedBytes[i / 8] |= (byte) (1 << (7 - (i % 8)));
                 }
             }
 
             try (FileOutputStream compressedFile = new FileOutputStream("compressed.bin")) {
+                compressedFile.write("%".getBytes());
                 compressedFile.write(compressedBytes);
                 for (Map.Entry<Character, String> code : codes.entrySet()) {
                     compressedFile.write(("\n" + code.getKey() + " " + code.getValue()).getBytes());
