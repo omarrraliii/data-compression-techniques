@@ -81,28 +81,11 @@ public class StandardHuffman {
             String compressedBytesString=compressedBytes.toString();
             StringBuilder binaryStringBuilder= new StringBuilder();
             String huffmanCodes="";
-            // boolean isFirstOcurrence=true;
             Map <String,String> huffmanTable=new HashMap<>();
             while (scanner.hasNext()){
                 huffmanTable.put(scanner.next(),scanner.next());
             }
-            // for(Map.Entry<String,String> entry:huffmanTable.entrySet()){
-            //     if(entry.getValue().contains("1")){
-            //         continue;
-            //     }
-            //     huffmanCodes=entry.getKey();
-            // }
-            
             for (int i=0;i<compressedBytesString.length();i++){
-                
-                // if ((compressedBytesString.charAt(i)=='%') && (isFirstOcurrence)){
-                //     isFirstOcurrence=false;
-                //     continue;
-                // }
-                // if(compressedBytesString.charAt(i)=='%')
-                //     break;
-                // int compressedBytesStringValue= (int)compressedBytesString.charAt(i);
-                // long unsignedcompressedBytesStringValue=Integer.toUnsignedLong(compressedBytesStringValue);
                 if(i==compressedBytesString.length()-1){
                     int index=0;
                     String lastByteModifier=Integer.toBinaryString((int)compressedBytesString.charAt(i));
