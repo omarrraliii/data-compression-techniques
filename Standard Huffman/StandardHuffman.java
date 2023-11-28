@@ -1,7 +1,6 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.*;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 import javax.swing.*;
 
@@ -52,15 +51,14 @@ public class StandardHuffman {
             }
         });
     }
-
-    private void decompressAction() {
+    private void decompressAction(){
         // Create a file chooser dialog to allow the user to select a file and store the user's selection
         JFileChooser fileChooser = new JFileChooser();
         int result = fileChooser.showOpenDialog(frame);
         // Check if the user selected a file (clicked "Open" and did not close the window)
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be decompressed
-            decompress(selectedFile);
+            decompress (selectedFile);
         }
     }
 
@@ -75,10 +73,9 @@ public class StandardHuffman {
             compress(selectedFile);
         }
     }
-
-    private void decompress(File file) {
-        try {
-            Scanner scanner = new Scanner(file, StandardCharsets.ISO_8859_1.name());
+    private void decompress(File file){
+        try  {
+            Scanner scanner = new Scanner(file);
             StringBuilder compressedBytes = new StringBuilder();
             compressedBytes.append(scanner.nextLine());
             String compressedBytesString=compressedBytes.toString();
@@ -147,21 +144,21 @@ public class StandardHuffman {
             huffmanCodes=binaryStringBuilder.toString();
             
             scanner.close();
-            String searchString = "";
-            String originalData = "";
-            for (int i = 0; i < huffmanCodes.length(); i++) {
-                searchString += huffmanCodes.charAt(i);
-                for (Map.Entry<String, String> entry : huffmanTable.entrySet()) {
-                    if (searchString.equals(entry.getValue())) {
-                        originalData += entry.getKey();
-                        searchString = "";
+            String searchString="";
+            String originalData="";
+            for(int i=0;i<huffmanCodes.length();i++){
+                searchString+=huffmanCodes.charAt(i);
+                for(Map.Entry<String,String> entry:huffmanTable.entrySet()){
+                    if (searchString.equals(entry.getValue())){
+                        originalData+=entry.getKey();
+                        searchString="";
                     }
                 }
             }
-            try {
-                File decompressedFile = new File("decompressed.txt");
+            try  {
+                File decompressedFile=new File("decompressed.txt");
                 decompressedFile.createNewFile();
-                FileWriter fileWriter = new FileWriter("decompressed.txt");
+                FileWriter fileWriter =new FileWriter("decompressed.txt");
                 fileWriter.write(originalData);
                 fileWriter.close();
                 textArea.setText("File is decompressed successfully in decompressed.txt");
@@ -172,7 +169,6 @@ public class StandardHuffman {
             System.out.println("Please make sure the file exists.");
         }
     }
-
     private void compress(File file) {
         try {
             // Get the original text from the file
