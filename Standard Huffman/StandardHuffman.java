@@ -81,7 +81,15 @@ public class StandardHuffman {
             String compressedBytesString=compressedBytes.toString();
             StringBuilder binaryStringBuilder= new StringBuilder();
             String huffmanCodes;
+            boolean isFirstOcurrence=true;
             for (int i=0;i<compressedBytesString.length();i++){
+                
+                if ((compressedBytesString.charAt(i)=='%') && (isFirstOcurrence)){
+                    isFirstOcurrence=false;
+                    continue;
+                }
+                if(compressedBytesString.charAt(i)=='%')
+                    break;
                 binaryStringBuilder.append(Integer.toBinaryString((int)compressedBytesString.charAt(i)));
             }
             huffmanCodes=binaryStringBuilder.toString();
