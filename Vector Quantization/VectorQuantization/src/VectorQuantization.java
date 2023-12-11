@@ -1,6 +1,7 @@
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.*;
 import java.util.Vector;
 import javax.imageio.ImageIO;
@@ -51,11 +52,11 @@ public class VectorQuantization {
         // Create a file chooser dialog to allow the user to select a file and store the user's selection
         JFileChooser fileChooser = new JFileChooser();
         int result = fileChooser.showOpenDialog(frame);
-    
+
         // Check if the user selected a file (clicked "Open" and did not close the window)
         if (result == JFileChooser.APPROVE_OPTION) {
             File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be decompressed
-    
+
             try {
                 decompress(2, 2, selectedFile.getAbsolutePath());
                 textArea.append("Image has been decompressed successfully.\n");
@@ -65,7 +66,7 @@ public class VectorQuantization {
             }
         }
     }
-    
+
 
     private void compressAction() {
         // Create a file chooser dialog to allow the user to select a file and store the user's selection
@@ -77,7 +78,7 @@ public class VectorQuantization {
             File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be decompressed
 
             try {
-                Compress(2, 2, 32, selectedFile.getAbsolutePath());
+                Compress(2, 2, 4, selectedFile.getAbsolutePath());
                 textArea.append("Image has been compressed successfully.\n");
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -96,7 +97,7 @@ public class VectorQuantization {
     private static void decompress(int vectorHeight, int vectorWidth, String compressedFilePath) throws IOException, ClassNotFoundException {
         FileInputStream fileInputStream = new FileInputStream(compressedFilePath);
         ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
-    
+
         // Read the compressed data from the file
         int originalWidth = (int) objectInputStream.readObject();
         int originalHeight = (int) objectInputStream.readObject();
@@ -106,9 +107,9 @@ public class VectorQuantization {
         vectorHeight = (int) objectInputStream.readObject();
         Vector<Integer> mappedVectorsToLabels = (Vector<Integer>) objectInputStream.readObject();
         Vector<Vector<Integer>> codebook = (Vector<Vector<Integer>>) objectInputStream.readObject();
-        
+
         objectInputStream.close();
-    
+
         // Reconstruct the decompressed image using the codebook and mapped labels
         int[][] decompressedImage = new int[originalHeight][originalWidth];
         int index = 0;
@@ -123,23 +124,27 @@ public class VectorQuantization {
                         decompressedImage[x][y] = vector.get((x - i) * vectorWidth + (y - j));
                     }
                 }
-             }
-        }
-    
-        // Create a BufferedImage from the decompressed image data
-        BufferedImage decompressedBufferedImage = new BufferedImage(originalWidth, originalHeight, BufferedImage.TYPE_BYTE_GRAY);
-    
-        for (int i = 0; i < originalHeight; i++) {
-            for (int j = 0; j < originalWidth; j++) {
-                decompressedBufferedImage.setRGB(j, i, decompressedImage[i][j]);
             }
         }
-    
+
+        // Create a BufferedImage from the decompressed image data
+        BufferedImage decompressedBufferedImage = new BufferedImage(originalWidth, originalHeight, BufferedImage.TYPE_BYTE_GRAY);
+
+        // Get the WritableRaster (contains the intensity value of each pixel) from the decompressed image
+        WritableRaster raster = decompressedBufferedImage.getRaster();
+
+        // Loop through the decompressed image data and set pixel values directly in the raster
+        for (int i = 0; i < originalHeight; i++) {
+            for (int j = 0; j < originalWidth; j++) {
+                // Set the pixel value directly in the raster
+                raster.setSample(j, i, 0, decompressedImage[i][j]);
+            }
+        }
+
         // Save the decompressed image to a file
         File outputImageFile = new File(compressedFilePath.substring(0, compressedFilePath.lastIndexOf('.')) + "_decompressed.jpeg");
         ImageIO.write(decompressedBufferedImage, "jpeg", outputImageFile);
     }
-    
 
     private static int[][] readImage(String path) throws IOException {
         BufferedImage image = ImageIO.read(new File(path));
