@@ -2,8 +2,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.io.File;
-import java.io.IOException;
 import java.util.Vector;
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -36,6 +34,7 @@ public class VectorQuantization {
         JButton decompressButton = new JButton("Decompress");
         decompressButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                decompressAction();
             }
         });
 
@@ -48,6 +47,25 @@ public class VectorQuantization {
         frame.add(buttonPanel, "South");
         frame.setVisible(true);
     }
+    private void decompressAction() {
+        // Create a file chooser dialog to allow the user to select a file and store the user's selection
+        JFileChooser fileChooser = new JFileChooser();
+        int result = fileChooser.showOpenDialog(frame);
+    
+        // Check if the user selected a file (clicked "Open" and did not close the window)
+        if (result == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be decompressed
+    
+            try {
+                decompress(2, 2, selectedFile.getAbsolutePath());
+                textArea.append("Image has been decompressed successfully.\n");
+            } catch (IOException | ClassNotFoundException ex) {
+                ex.printStackTrace();
+                textArea.append("Error occurred during decompression.\n");
+            }
+        }
+    }
+    
 
     private void compressAction() {
         // Create a file chooser dialog to allow the user to select a file and store the user's selection
@@ -59,7 +77,7 @@ public class VectorQuantization {
             File selectedFile = fileChooser.getSelectedFile(); // Get the selected file to be decompressed
 
             try {
-                Compress(2, 2, 4, selectedFile.getAbsolutePath());
+                Compress(2, 2, 32, selectedFile.getAbsolutePath());
                 textArea.append("Image has been compressed successfully.\n");
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -75,6 +93,53 @@ public class VectorQuantization {
             }
         });
     }
+    private static void decompress(int vectorHeight, int vectorWidth, String compressedFilePath) throws IOException, ClassNotFoundException {
+        FileInputStream fileInputStream = new FileInputStream(compressedFilePath);
+        ObjectInputStream objectInputStream = new ObjectInputStream(fileInputStream);
+    
+        // Read the compressed data from the file
+        int originalWidth = (int) objectInputStream.readObject();
+        int originalHeight = (int) objectInputStream.readObject();
+        int newWidth = (int) objectInputStream.readObject();
+        int newHeight = (int) objectInputStream.readObject();
+        vectorWidth = (int) objectInputStream.readObject();
+        vectorHeight = (int) objectInputStream.readObject();
+        Vector<Integer> mappedVectorsToLabels = (Vector<Integer>) objectInputStream.readObject();
+        Vector<Vector<Integer>> codebook = (Vector<Vector<Integer>>) objectInputStream.readObject();
+        
+        objectInputStream.close();
+    
+        // Reconstruct the decompressed image using the codebook and mapped labels
+        int[][] decompressedImage = new int[originalHeight][originalWidth];
+        int index = 0;
+
+        // Loop through the vectors and populate the decompressedImage array
+        for (int i = 0; i < newHeight; i += vectorHeight) {
+            for (int j = 0; j < newWidth; j += vectorWidth) {
+                Vector<Integer> vector = codebook.get(mappedVectorsToLabels.get(index++));
+
+                for (int x = i; x < Math.min(i + vectorHeight, originalHeight); x++) {
+                    for (int y = j; y < Math.min(j + vectorWidth, originalWidth); y++) {
+                        decompressedImage[x][y] = vector.get((x - i) * vectorWidth + (y - j));
+                    }
+                }
+             }
+        }
+    
+        // Create a BufferedImage from the decompressed image data
+        BufferedImage decompressedBufferedImage = new BufferedImage(originalWidth, originalHeight, BufferedImage.TYPE_BYTE_GRAY);
+    
+        for (int i = 0; i < originalHeight; i++) {
+            for (int j = 0; j < originalWidth; j++) {
+                decompressedBufferedImage.setRGB(j, i, decompressedImage[i][j]);
+            }
+        }
+    
+        // Save the decompressed image to a file
+        File outputImageFile = new File(compressedFilePath.substring(0, compressedFilePath.lastIndexOf('.')) + "_decompressed.jpeg");
+        ImageIO.write(decompressedBufferedImage, "jpeg", outputImageFile);
+    }
+    
 
     private static int[][] readImage(String path) throws IOException {
         BufferedImage image = ImageIO.read(new File(path));
